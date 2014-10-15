@@ -6,6 +6,10 @@ class AssetAdminExport extends LeftAndMainExtension {
 		'backup'
 	);
 
+	/**
+	 * @param Form $form
+	 * @return Form $form
+	 */
 	public function updateEditForm(Form $form) {
 		$backupButton = new LiteralField(
 			'BackupButton',
@@ -17,25 +21,42 @@ class AssetAdminExport extends LeftAndMainExtension {
 			)
 		);
 
-		// too specific - only takes a change in field structure to break this
-		$form->Fields()
-			->findOrMakeTab('Root.ListView')
-			->FieldList()
-			->first()
-			->FieldList()
-			->first()
-			->FieldList()
-			->push($backupButton);
+		if($field = $this->fieldByExtraClass($form->Fields(), 'cms-actions-row')) {
+			$field->push($backupButton);
+		}
 
 		return $form;
 	}
 
+	/**
+	 * Recursively search & return a field by 'extra class' from FieldList.
+	 * 
+	 * @todo Could be added as a FieldList extension but it's a bit overkill for the sake of a button
+	 * 
+	 * @param FieldList $fields 
+	 * @param $class The extra class name to search for
+	 * @return FormField|null
+	 */
+	public function fieldByExtraClass(FieldList $fields, $class) {
+		foreach($fields as $field)  {
+			if(in_array($class, $field->extraClasses)) {
+				return $field;
+			}
+			if(method_exists($field, 'FieldList')) {
+				return $this->fieldByExtraClass($field->FieldList(), $class);
+			}
+		}
+	}
+
+	/**
+	 * @return SS_HTTPRequest
+	 */
 	public function backup() {
 		$name = 'assets_' . SS_DateTime::now()->Format('Y-m-d') . '.zip';
 		$tmpName = TEMP_FOLDER . '/' . $name;
 		$zip = new ZipArchive();
 
-		if(!$zip->open($tmpName, ZIPARCHIVE::OVERWRITE)) {
+		if(!$zip->open($tmpName, ZipArchive::OVERWRITE)) {
 			user_error('Asset Export Extension: Unable to read/write temporary zip archive', E_USER_ERROR);
 			return;
 		}
@@ -52,7 +73,7 @@ class AssetAdminExport extends LeftAndMainExtension {
 			$zip->addFile($file, $local);
 		}
 
-		if(!$zip->status == ZIPARCHIVE::ER_OK) {
+		if(!$zip->status == ZipArchive::ER_OK) {
 			user_error('Asset Export Extension: ZipArchive returned an error other than OK', E_USER_ERROR);
 			return;
 		}
