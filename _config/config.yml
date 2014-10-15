@@ -1,0 +1,6 @@
+---
+Name: assetexport
+---
+AssetAdmin:
+  extensions:
+    - AssetAdminExport
