@@ -42,7 +42,7 @@ class AssetAdminExport extends LeftAndMainExtension {
 			if(in_array($class, $field->extraClasses)) {
 				return $field;
 			}
-			if(method_exists($field, 'FieldList')) {
+			if($field->isComposite()) {
 				return $this->fieldByExtraClass($field->FieldList(), $class);
 			}
 		}
