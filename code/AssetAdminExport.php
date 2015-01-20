@@ -39,7 +39,7 @@ class AssetAdminExport extends LeftAndMainExtension {
 	 */
 	public function fieldByExtraClass(FieldList $fields, $class) {
 		foreach($fields as $field)  {
-			if(in_array($class, $field->extraClasses)) {
+			if($field->extraClasses && in_array($class, $field->extraClasses)) {
 				return $field;
 			}
 			if(method_exists($field, 'FieldList')) {
