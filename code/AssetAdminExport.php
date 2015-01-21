@@ -39,10 +39,10 @@ class AssetAdminExport extends LeftAndMainExtension {
 	 */
 	public function fieldByExtraClass(FieldList $fields, $class) {
 		foreach($fields as $field)  {
-			if(in_array($class, $field->extraClasses)) {
+			if($field->extraClasses && in_array($class, $field->extraClasses)) {
 				return $field;
 			}
-			if(method_exists($field, 'FieldList')) {
+			if($field->isComposite()) {
 				return $this->fieldByExtraClass($field->FieldList(), $class);
 			}
 		}
@@ -79,8 +79,13 @@ class AssetAdminExport extends LeftAndMainExtension {
 		}
 
 		$zip->close();
-
-		ob_flush(); // fix browser crash(?)
+		
+		if(ob_get_length()) {
+			@ob_flush();
+			@flush();
+			@ob_end_flush();
+		}
+		@ob_start();
 
 		$content = file_get_contents($tmpName);
 		unlink($tmpName);
